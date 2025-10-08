@@ -73,6 +73,7 @@ public class TestScanner {
 	}
 	
 
+    
 	@Test
 	public void testRepeatUntil() {
 		compileExpectSuccess("/repeatuntil.tri");
