@@ -339,9 +339,9 @@ public class Parser {
 			break;
         case REPEAT: {
             acceptIt();
-            Expression eAST = parseExpression();
-            accept(Token.Kind.UNTIL);
             Command cAST = parseSingleCommand();
+            accept(Token.Kind.UNTIL);
+            Expression eAST = parseExpression();
             finish(commandPos);
             commandAST = new RepeatCommand(eAST, cAST, commandPos);
         }
