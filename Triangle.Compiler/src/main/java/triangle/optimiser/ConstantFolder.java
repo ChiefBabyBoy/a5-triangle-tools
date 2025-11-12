@@ -1,6 +1,7 @@
 package triangle.optimiser;
 
 import triangle.StdEnvironment;
+import triangle.VisitorStatistics;
 import triangle.abstractSyntaxTrees.AbstractSyntaxTree;
 import triangle.abstractSyntaxTrees.Program;
 import triangle.abstractSyntaxTrees.actuals.ConstActualParameter;
@@ -19,9 +20,9 @@ import triangle.abstractSyntaxTrees.commands.CallCommand;
 import triangle.abstractSyntaxTrees.commands.EmptyCommand;
 import triangle.abstractSyntaxTrees.commands.IfCommand;
 import triangle.abstractSyntaxTrees.commands.LetCommand;
+import triangle.abstractSyntaxTrees.commands.LoopCommand;
 import triangle.abstractSyntaxTrees.commands.SequentialCommand;
 import triangle.abstractSyntaxTrees.commands.WhileCommand;
-import triangle.abstractSyntaxTrees.commands.RepeatCommand;
 import triangle.abstractSyntaxTrees.declarations.BinaryOperatorDeclaration;
 import triangle.abstractSyntaxTrees.declarations.ConstDeclaration;
 import triangle.abstractSyntaxTrees.declarations.FuncDeclaration;
@@ -89,8 +90,10 @@ public class ConstantFolder implements ActualParameterVisitor<Void, AbstractSynt
 		OperatorVisitor<Void, AbstractSyntaxTree>, ProgramVisitor<Void, AbstractSyntaxTree>,
 		RecordAggregateVisitor<Void, AbstractSyntaxTree>, TypeDenoterVisitor<Void, AbstractSyntaxTree>,
 		VnameVisitor<Void, AbstractSyntaxTree> {
-	{
 
+    private Boolean showStats = true;
+
+	{
 	}
 
 	@Override
@@ -178,7 +181,10 @@ public class ConstantFolder implements ActualParameterVisitor<Void, AbstractSynt
 
 	@Override
 	public AbstractSyntaxTree visitCharTypeDenoter(CharTypeDenoter ast, Void arg) {
-		return null;
+		if(showStats == true) {
+            VisitorStatistics.visitChar();
+        }
+        return null;
 	}
 
 	@Override
@@ -194,6 +200,9 @@ public class ConstantFolder implements ActualParameterVisitor<Void, AbstractSynt
 
 	@Override
 	public AbstractSyntaxTree visitIntTypeDenoter(IntTypeDenoter ast, Void arg) {
+        if(showStats == true) {
+            VisitorStatistics.visitInt();
+        }
 		return null;
 	}
 
@@ -237,11 +246,17 @@ public class ConstantFolder implements ActualParameterVisitor<Void, AbstractSynt
 
 	@Override
 	public AbstractSyntaxTree visitCharacterLiteral(CharacterLiteral ast, Void arg) {
+        if(showStats == true){
+            VisitorStatistics.visitChar();
+        }
 		return null;
 	}
 
 	@Override
 	public AbstractSyntaxTree visitIntegerLiteral(IntegerLiteral ast, Void arg) {
+        if(showStats == true){
+            VisitorStatistics.visitInt();
+        }
 		return ast;
 	}
 
@@ -498,13 +513,12 @@ public class ConstantFolder implements ActualParameterVisitor<Void, AbstractSynt
 	}
 
 	@Override
-	public AbstractSyntaxTree visitRepeatCommand(RepeatCommand ast, Void arg) {
-		ast.C.visit(this);
-		AbstractSyntaxTree replacement = ast.E.visit(this);
-		if (replacement != null) {
-			ast.E = (Expression) replacement;
-		}
-		return null;
+	public AbstractSyntaxTree visitLoopCommand(LoopCommand ast, Void arg) {
+        ast.C1.visit(this);
+        ast.E.visit(this);
+        ast.C3.visit(this);
+
+        return null;
 	}
 
 	@Override
@@ -580,17 +594,9 @@ public class ConstantFolder implements ActualParameterVisitor<Void, AbstractSynt
 			
 			if (o.decl == StdEnvironment.addDecl) {
 				foldedValue = int1 + int2;
-			} else if (o.decl == StdEnvironment.subtractDecl) {
-                foldedValue = int1 - int2;
-            } else if (o.decl == StdEnvironment.divideDecl) {
-                foldedValue = int1 / int2;
-            } else if (o.decl == StdEnvironment.multiplyDecl) {
-                foldedValue = int1 * int2;
-            } else if (o.decl == StdEnvironment.moduloDecl) {
-                foldedValue = int1 % int2;
-            }
+			}
 
-            if (foldedValue instanceof Integer) {
+			if (foldedValue instanceof Integer) {
 				IntegerLiteral il = new IntegerLiteral(foldedValue.toString(), node1.getPosition());
 				IntegerExpression ie = new IntegerExpression(il, node1.getPosition());
 				ie.type = StdEnvironment.integerType;

@@ -28,16 +28,26 @@ import triangle.syntacticAnalyzer.Scanner;
 import triangle.syntacticAnalyzer.SourceFile;
 import triangle.treeDrawer.Drawer;
 
+import com.sampullara.cli.Args;
+import com.sampullara.cli.Argument;
+
 /**
  * The main driver class for the Triangle compiler.
  */
 public class Compiler {
 
 	/** The filename for the object program, normally obj.tam. */
-	static String objectName = "obj.tam";
-	
-	static boolean showTree = false;
-	static boolean folding = false;
+    @Argument(alias = "o", description = "the name of the file containing the object program", required = true)
+	protected static String objectName = "obj.tam";
+
+    @Argument(alias = "t", description = "Whether the tree will be diplayed", required = false)
+	protected static boolean showTree = false;
+
+    @Argument(alias = "f", description = "Whether folding had been implemented", required = false)
+	protected static boolean folding = false;
+
+    @Argument(alias = "a", description = "Whether the tree should be displayed after compilation", required = false)
+    protected static boolean showTreeAfter = false;
 
 	private static Scanner scanner;
 	private static Parser parser;
@@ -86,9 +96,9 @@ public class Compiler {
 		// scanner.enableDebugging();
 		theAST = parser.parseProgram(); // 1st pass
 		if (reporter.getNumErrors() == 0) {
-			// if (showingAST) {
-			// drawer.draw(theAST);
-			// }
+			if (showingAST) {
+			drawer.draw(theAST);
+            }
 			System.out.println("Contextual Analysis ...");
 			checker.check(theAST); // 2nd pass
 			if (showingAST) {
@@ -122,12 +132,14 @@ public class Compiler {
 	 */
 	public static void main(String[] args) {
 
+        Compiler compiler = new Compiler();
+
 		if (args.length < 1) {
 			System.out.println("Usage: tc filename [-o=outputfilename] [tree] [folding]");
 			System.exit(1);
 		}
-		
-		parseArgs(args);
+
+        Args.parseOrExit(compiler, args);
 
 		String sourceName = args[0];
 		

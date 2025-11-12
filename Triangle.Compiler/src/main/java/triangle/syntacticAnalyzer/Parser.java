@@ -41,9 +41,9 @@ import triangle.abstractSyntaxTrees.commands.Command;
 import triangle.abstractSyntaxTrees.commands.EmptyCommand;
 import triangle.abstractSyntaxTrees.commands.IfCommand;
 import triangle.abstractSyntaxTrees.commands.LetCommand;
+import triangle.abstractSyntaxTrees.commands.LoopCommand;
 import triangle.abstractSyntaxTrees.commands.SequentialCommand;
 import triangle.abstractSyntaxTrees.commands.WhileCommand;
-import triangle.abstractSyntaxTrees.commands.RepeatCommand;
 import triangle.abstractSyntaxTrees.declarations.ConstDeclaration;
 import triangle.abstractSyntaxTrees.declarations.Declaration;
 import triangle.abstractSyntaxTrees.declarations.FuncDeclaration;
@@ -283,14 +283,25 @@ public class Parser {
 		case IDENTIFIER: {
 			Identifier iAST = parseIdentifier();
 			if (currentToken.kind == Token.Kind.LPAREN) {
-				acceptIt();
-				ActualParameterSequence apsAST = parseActualParameterSequence();
-				accept(Token.Kind.RPAREN);
-				finish(commandPos);
-				commandAST = new CallCommand(iAST, apsAST, commandPos);
+                acceptIt();
+                ActualParameterSequence apsAST = parseActualParameterSequence();
+                accept(Token.Kind.RPAREN);
+                finish(commandPos);
+                commandAST = new CallCommand(iAST, apsAST, commandPos);
+
+            }else if (currentToken.kind == Token.Kind.OPERATOR && currentToken.spelling.equals("**")){
+                Vname vAST = parseRestOfVname(iAST);
+
+                acceptIt();
+                IntegerLiteral il = new IntegerLiteral("2", commandPos);
+                IntegerExpression ie = new IntegerExpression(il, commandPos);
+                VnameExpression vne = new VnameExpression(vAST, commandPos);
+                Operator op = new Operator("*", commandPos);
+                Expression eAST = new BinaryExpression(vne, op, ie, commandPos);
+                finish(commandPos);
+                commandAST = new AssignCommand(vAST, eAST, commandPos);
 
 			} else {
-
 				Vname vAST = parseRestOfVname(iAST);
 				accept(Token.Kind.BECOMES);
 				Expression eAST = parseExpression();
@@ -300,11 +311,19 @@ public class Parser {
 		}
 			break;
 
-		case BEGIN:
+        case LCURLY: {
+            acceptIt();
+            commandAST = parseCommand();
+            accept(Token.Kind.RCURLY);
+            }
+            break;
+
+		case BEGIN:{
 			acceptIt();
 			commandAST = parseCommand();
-			accept(Token.Kind.END);
-			break;
+            accept(Token.Kind.END);
+            }
+            break;
 
 		case LET: {
 			acceptIt();
@@ -315,6 +334,18 @@ public class Parser {
 			commandAST = new LetCommand(dAST, cAST, commandPos);
 		}
 			break;
+
+        case LOOP: {
+            acceptIt();
+            Command c1AST = parseCommand();
+            accept(Token.Kind.WHILE);
+            Expression eAST = parseExpression();
+            accept(Token.Kind.DO);
+            Command c3AST = parseSingleCommand();
+            finish(commandPos);
+            commandAST = new LoopCommand(c1AST, eAST, c3AST, commandPos);
+        }
+        break;
 
 		case IF: {
 			acceptIt();
@@ -337,17 +368,10 @@ public class Parser {
 			commandAST = new WhileCommand(eAST, cAST, commandPos);
 		}
 			break;
-        case REPEAT: {
-            acceptIt();
-            Command cAST = parseSingleCommand();
-            accept(Token.Kind.UNTIL);
-            Expression eAST = parseExpression();
-            finish(commandPos);
-            commandAST = new RepeatCommand(eAST, cAST, commandPos);
-        }
-            break;
+
 		case SEMICOLON:
 		case END:
+        case RCURLY:
 		case ELSE:
 		case IN:
 		case EOT:

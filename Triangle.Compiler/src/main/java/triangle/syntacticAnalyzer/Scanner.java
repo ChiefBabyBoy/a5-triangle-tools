@@ -39,7 +39,7 @@ public final class Scanner {
 
 	public static boolean isOperator(char c) {
 		return (c == '+' || c == '-' || c == '*' || c == '/' || c == '=' || c == '<' || c == '>' || c == '\\'
-				|| c == '&' || c == '@' || c == '%' || c == '^' || c == '?' || c == '|');
+				|| c == '&' || c == '@' || c == '%' || c == '^' || c == '?');
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -69,16 +69,6 @@ public final class Scanner {
 		switch (currentChar) {
 		
 		// comment
-        case '$':
-            takeIt();
-
-            while ((currentChar != '$') && (currentChar != SourceFile.EOT))
-                takeIt();
-            if (currentChar == SourceFile.EOL)
-                takeIt();
-            break;
-
-        case '#':
 		case '!': 
 			takeIt();
 			
@@ -175,8 +165,7 @@ public final class Scanner {
 				takeIt();
 			return Token.Kind.INTLITERAL;
 
-        case '|':
-        case '+':
+		case '+':
 		case '-':
 		case '*':
 		case '/':
@@ -268,7 +257,7 @@ public final class Scanner {
 		currentlyScanningToken = false;
 		// skip any whitespace or comments
 		while (currentChar == '!' || currentChar == ' ' || currentChar == '\n' || currentChar == '\r'
-				|| currentChar == '\t' || currentChar == '#' || currentChar == '$')
+				|| currentChar == '\t')
 			scanSeparator();
 
 		currentlyScanningToken = true;

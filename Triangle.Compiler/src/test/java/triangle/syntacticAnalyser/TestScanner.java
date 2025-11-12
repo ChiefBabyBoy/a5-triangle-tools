@@ -57,29 +57,36 @@ public class TestScanner {
 
 	@Test
 	public void testHiNewComment() {
-		compileExpectSuccess("/hi-newcomment.tri");
+		compileExpectFailure("/hi-newcomment.tri");
 	}
 	
 
 	@Test
 	public void testHiNewComment2() {
-		compileExpectSuccess("/hi-newcomment2.tri");
+		compileExpectFailure("/hi-newcomment2.tri");
 	}
 	
 
 	@Test
 	public void testBarDemo() {
-		compileExpectSuccess("/bardemo.tri");
+		compileExpectFailure("/bardemo.tri");
 	}
 	
 
 	@Test
 	public void testRepeatUntil() {
-            compileExpectSuccess("/repeatuntil.tri");
+		compileExpectFailure("/repeatuntil.tri");
 	}
-	
-	
-	
+
+    @Test
+    public void testMultiplication(){compileExpectSuccess("/double.tri");}
+
+    @Test
+    public void testCurlyBrackets(){compileExpectSuccess("/while-curly.tri");}
+
+    @Test
+    public void testLoopWhileDo(){compileExpectSuccess("/loopwhile.tri");}
+
 	private void compileExpectSuccess(String filename) {
 		// build.gradle has a line sourceSets.test.resources.srcDir file("$rootDir/programs")
 		// which adds the programs directory to the list of places Java can easily find files

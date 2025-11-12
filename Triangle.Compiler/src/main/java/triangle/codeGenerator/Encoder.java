@@ -42,9 +42,9 @@ import triangle.abstractSyntaxTrees.commands.CallCommand;
 import triangle.abstractSyntaxTrees.commands.EmptyCommand;
 import triangle.abstractSyntaxTrees.commands.IfCommand;
 import triangle.abstractSyntaxTrees.commands.LetCommand;
+import triangle.abstractSyntaxTrees.commands.LoopCommand;
 import triangle.abstractSyntaxTrees.commands.SequentialCommand;
 import triangle.abstractSyntaxTrees.commands.WhileCommand;
-import triangle.abstractSyntaxTrees.commands.RepeatCommand;
 import triangle.abstractSyntaxTrees.declarations.BinaryOperatorDeclaration;
 import triangle.abstractSyntaxTrees.declarations.ConstDeclaration;
 import triangle.abstractSyntaxTrees.declarations.Declaration;
@@ -118,7 +118,6 @@ import triangle.codeGenerator.entities.TypeRepresentation;
 import triangle.codeGenerator.entities.UnknownAddress;
 import triangle.codeGenerator.entities.UnknownRoutine;
 import triangle.codeGenerator.entities.UnknownValue;
-import triangle.codeGenerator.entities.BarPrimitiveRoutine;
 
 public final class Encoder implements ActualParameterVisitor<Frame, Integer>,
 		ActualParameterSequenceVisitor<Frame, Integer>, ArrayAggregateVisitor<Frame, Integer>,
@@ -169,6 +168,16 @@ public final class Encoder implements ActualParameterVisitor<Frame, Integer>,
 		return null;
 	}
 
+    @Override
+    public Void visitLoopCommand(LoopCommand ast, Frame frame) {
+        var loopAddr = emitter.getNextInstrAddr();
+        ast.C1.visit(this, frame);
+        ast.C3.visit(this, frame);
+        ast.E.visit(this, frame);
+        emitter.emit(OpCode.JUMPIF, Machine.trueRep, Register.CB, loopAddr);
+        return null;
+    }
+
 	@Override
 	public Void visitSequentialCommand(SequentialCommand ast, Frame frame) {
 		ast.C1.visit(this, frame);
@@ -186,17 +195,6 @@ public final class Encoder implements ActualParameterVisitor<Frame, Integer>,
 		emitter.emit(OpCode.JUMPIF, Machine.trueRep, Register.CB, loopAddr);
 		return null;
 	}
-
-    @Override
-    public Void visitRepeatCommand(RepeatCommand ast, Frame frame) {
-        var jumpAddr = emitter.emit(OpCode.JUMP, 0, Register.CB, 0);
-        var loopAddr = emitter.getNextInstrAddr();
-        ast.C.visit(this, frame);
-        emitter.patch(jumpAddr);
-        ast.E.visit(this, frame);
-        emitter.emit(OpCode.JUMPIF, Machine.falseRep, Register.CB, loopAddr);
-        return null;
-    }
 
 	// Expressions
 	@Override
@@ -758,9 +756,6 @@ public final class Encoder implements ActualParameterVisitor<Frame, Integer>,
 		elaborateStdPrimRoutine(StdEnvironment.puteolDecl, Primitive.PUTEOL);
 		elaborateStdEqRoutine(StdEnvironment.equalDecl, Primitive.EQ);
 		elaborateStdEqRoutine(StdEnvironment.unequalDecl, Primitive.NE);
-
-        StdEnvironment.barDecl.entity = new BarPrimitiveRoutine();
-
 	}
 
 	boolean tableDetailsReqd;
